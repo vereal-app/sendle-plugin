@@ -15,7 +15,7 @@ When prompted, paste your **access token** — get one free at [sendle.app](http
 
 ### One-time Kindle setup
 
-Add Sendle's sender address to your Amazon **Approved Personal Document E-mail List** (Manage Content & Devices → Preferences → Personal Document Settings), or Amazon silently drops the delivery. Sign-up at [sendle.app](https://sendle.app) walks you through it and sends a test document.
+Add Sendle's sender address to your Amazon **Approved Personal Document E-mail List** (Manage Content & Devices → Preferences → Personal Document Settings). Sign-up at [sendle.app](https://sendle.app) walks you through it and sends a test document.
 
 ## Use
 
