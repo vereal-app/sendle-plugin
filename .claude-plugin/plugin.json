@@ -1,0 +1,29 @@
+{
+  "name": "sendle",
+  "version": "0.1.0",
+  "description": "Long-form archive to Kindle: conversationally save long-form conclusions, assemble a reproducible EPUB, and send it to Kindle — via the hosted Sendle service. Zero main-thread disruption; controllable and reproducible.",
+  "author": {
+    "name": "VEREAL"
+  },
+  "keywords": [
+    "kindle",
+    "epub",
+    "archive",
+    "mcp"
+  ],
+  "userConfig": {
+    "token": {
+      "type": "string",
+      "title": "Sendle access token",
+      "description": "Your Sendle access token — register free at sendle.app to get one.",
+      "required": true,
+      "sensitive": true
+    },
+    "api_base": {
+      "type": "string",
+      "title": "Sendle API base URL",
+      "description": "Sendle API base URL (advanced; leave as default).",
+      "default": "https://api.sendle.app"
+    }
+  }
+}

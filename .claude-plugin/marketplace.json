@@ -1,0 +1,14 @@
+{
+  "name": "sendle-marketplace",
+  "owner": {
+    "name": "VEREAL"
+  },
+  "plugins": [
+    {
+      "name": "sendle",
+      "source": "./",
+      "description": "Long-form archive to Kindle: collect snippets, assemble a reproducible EPUB, deliver via a hosted service.",
+      "version": "0.1.0"
+    }
+  ]
+}

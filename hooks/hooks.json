@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__(plugin_sendle_)?sendle(-local)?__.*",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/validate.mjs\"" }
+        ]
+      }
+    ]
+  }
+}
