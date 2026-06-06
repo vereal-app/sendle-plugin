@@ -25,8 +25,13 @@ Add Sendle's sender address to your Amazon **Approved Personal Document E-mail L
 | `/sendle:toc` | list the current book's items |
 | `/sendle:send` | assemble the book → EPUB → send to Kindle |
 | `/sendle:kindle <path>` | one-shot: send a local `.md` / `.html` file to Kindle |
+| `/sendle:single-html <topic>` | write a polished single-file HTML report — then offer to Kindle it |
 
 Or just ask in plain words — *"send this RFC to my Kindle with sendle"*.
+
+### Bundled skill: single-html
+
+The plugin ships a report skill: ask for a write-up (*"turn this into a report"*) and Claude produces **one self-contained HTML file** — fixed table of contents, callouts, tables, readable offline. Sendle's EPUB engine is tuned for exactly that format, so the same file reads clean on e-ink: `/sendle:kindle docs/your-report.html` and it's on your Kindle.
 
 ## How it works
 
