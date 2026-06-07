@@ -56,7 +56,7 @@ Full policy: [sendle.app/privacy](https://sendle.app/privacy)
 - Web app & sign-up — https://sendle.app/?ref=github
 - Examples & sample EPUB — https://sendle.app/examples?ref=github
 - Guides (every way to send) — https://sendle.app/guides?ref=github
-- Pricing (free tier: 5 books/month) — https://sendle.app/pricing?ref=github
+- Pricing (free tier: 7 books/month) — https://sendle.app/pricing?ref=github
 - Privacy — https://sendle.app/privacy
 
 ## License
