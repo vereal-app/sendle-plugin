@@ -11,9 +11,10 @@ Archive long-form to your Kindle. In Claude Code, ask in plain words — Sendle 
 ```
 /plugin marketplace add vereal-app/sendle-plugin
 /plugin install sendle
+/reload-plugins
 ```
 
-When prompted, paste your **access token** — get one free at [sendle.app](https://sendle.app/?ref=github). That's the only thing to configure; the API endpoint is built in.
+When prompted, paste your **access token** — get one free at [sendle.app](https://sendle.app/?ref=github). That's the only thing to configure; the API endpoint is built in. The final `/reload-plugins` restarts the plugin's connectors so they pick up your token.
 
 ### One-time Kindle setup
 
