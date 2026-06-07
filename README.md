@@ -61,4 +61,7 @@ Full policy: [sendle.app/privacy](https://sendle.app/privacy)
 
 ## License
 
-MIT © VEREAL
+[FSL-1.1-Apache-2.0](LICENSE) © VEREAL Labs — free to use, modify, and share for any
+non-competing purpose, personal use included. The one thing it rules out: offering this
+software (or a substitute built from it) as a commercial hosted service. Each release
+converts to Apache 2.0 two years after publication.
