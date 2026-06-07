@@ -2,6 +2,8 @@
 
 Archive long-form to your Kindle. In Claude Code, ask in plain words — Sendle assembles a **reproducible** EPUB and delivers it by email.
 
+**See the result first:** [download a sample book](https://sendle.app/sendle-sample.epub) (11 KB EPUB) — real chapters, a contents page, code that survives e-ink, assembled by the same pipeline this plugin drives. More live examples: [sendle.app/examples](https://sendle.app/examples?ref=github).
+
 > This is the **Claude Code plugin**: a thin client for the hosted Sendle service. It is a generated, auditable snapshot — the source of truth lives in a private monorepo, and Codex / Cursor builds live in their own repos. Don't send PRs here; open issues instead.
 
 ## Install
@@ -11,11 +13,11 @@ Archive long-form to your Kindle. In Claude Code, ask in plain words — Sendle 
 /plugin install sendle
 ```
 
-When prompted, paste your **access token** — get one free at [sendle.app](https://sendle.app). That's the only thing to configure; the API endpoint is built in.
+When prompted, paste your **access token** — get one free at [sendle.app](https://sendle.app/?ref=github). That's the only thing to configure; the API endpoint is built in.
 
 ### One-time Kindle setup
 
-Add Sendle's sender address to your Amazon **Approved Personal Document E-mail List** (Manage Content & Devices → Preferences → Personal Document Settings). Sign-up at [sendle.app](https://sendle.app) walks you through it and sends a test document.
+Add Sendle's sender address to your Amazon **Approved Personal Document E-mail List** (Manage Content & Devices → Preferences → Personal Document Settings). Sign-up at [sendle.app](https://sendle.app/?ref=github) walks you through it and sends a test document.
 
 ## Use
 
@@ -50,7 +52,11 @@ Full policy: [sendle.app/privacy](https://sendle.app/privacy)
 
 ## Links
 
-- Web app & sign-up — https://sendle.app
+- Web app & sign-up — https://sendle.app/?ref=github
+- Examples & sample EPUB — https://sendle.app/examples?ref=github
+- Guides (every way to send) — https://sendle.app/guides?ref=github
+- Pricing (free tier: 5 books/month) — https://sendle.app/pricing?ref=github
+- Privacy — https://sendle.app/privacy
 
 ## License
 
