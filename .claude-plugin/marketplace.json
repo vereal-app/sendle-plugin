@@ -8,7 +8,7 @@
       "name": "sendle",
       "source": "./",
       "description": "Long-form archive to Kindle: collect snippets, assemble a reproducible EPUB, deliver via a hosted service.",
-      "version": "0.1.0"
+      "version": "0.1.1"
     }
   ]
 }

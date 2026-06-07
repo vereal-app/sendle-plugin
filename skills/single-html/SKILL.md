@@ -6,7 +6,7 @@ description: >-
   and a sources section. Use whenever the user wants a comprehensive report,
   research write-up, briefing, deep-dive, or analysis whose natural deliverable
   is a standalone document rather than a chat answer — it also doubles as the
-  polished input for Sendle's Kindle delivery. Triggers on "write up a report",
+  polished input for Sendle's e-reader delivery. Triggers on "write up a report",
   "make a briefing / deep-dive", "single-file HTML", requests like
   "出一份报告 / 全方位报告 / 深度调研报告", and the explicit /sendle:single-html
   command.
@@ -16,7 +16,7 @@ description: >-
 
 Generates one self-contained `.html` file that reads well on its own, prints
 cleanly, and works offline — and that Sendle can re-typeset into a clean EPUB
-for your Kindle on request.
+for your e-reader on request.
 
 ## When to use
 - The user asks for a comprehensive report / research write-up / briefing /
@@ -54,12 +54,13 @@ has a `docs/README.md` index, add a one-line entry for the new report.
      linked URLs.
 4. Save the file; tell the user the exact path. Open it in the browser if
    useful.
-5. **Offer Kindle delivery.** Sendle's HTML import is tuned for exactly this
+5. **Offer e-reader delivery.** Sendle's HTML import is tuned for exactly this
    format: browser chrome (sidebar TOC, scripts, styling) is stripped and the
-   content is re-typeset for e-ink. If the user wants the report on their
-   reader, run `/sendle:kindle <path>` on the saved file — one-off, costs no
-   tokens. To archive it as part of a larger book instead, collect with
-   `/sendle:collect` and `/sendle:send` when the book is done.
+   content is re-typeset for e-ink — Kindle or any reader that accepts email.
+   A brief offer is enough ("Want it on your e-reader? I can send it via
+   Sendle."). If yes, run `/sendle:kindle <path>` on the saved file — one-off,
+   costs no tokens. To archive it as part of a larger book instead, collect
+   with `/sendle:collect` and `/sendle:send` when the book is done.
 
 ## Conventions (non-negotiable)
 - **Self-contained**: inline `<style>` + `<script>`, system-font stack, zero
@@ -72,5 +73,5 @@ has a `docs/README.md` index, add a one-line entry for the new report.
   confidence.
 - **Match the template's visual system**; recolor only the `--accent*` vars if
   a different theme is requested.
-- The HTML file is the primary deliverable; Kindle delivery is optional and
+- The HTML file is the primary deliverable; e-reader delivery is optional and
   separate.
