@@ -8,8 +8,8 @@ description: >-
   is a standalone document rather than a chat answer — it also doubles as the
   polished input for Sendle's e-reader delivery. Triggers on "write up a report",
   "make a briefing / deep-dive", "single-file HTML", requests like
-  "出一份报告 / 全方位报告 / 深度调研报告", and the explicit /sendle:single-html
-  command.
+  "full report / comprehensive report / in-depth research report", and the
+  explicit /sendle:single-html command.
 ---
 
 # single-html

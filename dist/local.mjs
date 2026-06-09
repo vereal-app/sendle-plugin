@@ -21095,6 +21095,175 @@ var StdioServerTransport = class {
   }
 };
 
+// apps/local-shell/src/auth.ts
+import { spawn } from "node:child_process";
+import { createHash, randomBytes } from "node:crypto";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
+var CRED_PATH = join(homedir(), ".config", "sendle", "credentials.json");
+var SCOPE = "sendle:send";
+var EXPIRY_MARGIN_MS = 6e4;
+var LOGIN_TIMEOUT_MS = 18e4;
+function b64url(bytes) {
+  return Buffer.from(bytes).toString("base64url");
+}
+function pkcePair() {
+  const verifier = b64url(randomBytes(32));
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  return { verifier, challenge };
+}
+function accessTokenValid(creds, now) {
+  return !!creds?.accessToken && creds.expiresAt > now + EXPIRY_MARGIN_MS;
+}
+function toCreds(clientId, t, now) {
+  return {
+    clientId,
+    accessToken: t.access_token,
+    refreshToken: t.refresh_token,
+    expiresAt: now + (t.expires_in ?? 3600) * 1e3
+  };
+}
+async function loadStore() {
+  try {
+    return JSON.parse(await readFile(CRED_PATH, "utf8"));
+  } catch {
+    return {};
+  }
+}
+async function saveCreds(apiBase, creds) {
+  const store = await loadStore();
+  store[apiBase] = creds;
+  await mkdir(dirname(CRED_PATH), { recursive: true });
+  await writeFile(CRED_PATH, JSON.stringify(store, null, 2), { mode: 384 });
+}
+function openBrowser(url) {
+  const [cmd, args] = process.platform === "darwin" ? ["open", [url]] : process.platform === "win32" ? ["cmd", ["/c", "start", "", url]] : ["xdg-open", [url]];
+  try {
+    spawn(cmd, args, { stdio: "ignore", detached: true }).unref();
+  } catch {
+  }
+}
+async function refresh(apiBase, creds) {
+  if (!creds.refreshToken) return null;
+  const res = await fetch(`${apiBase}/token`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: creds.refreshToken,
+      client_id: creds.clientId
+    })
+  });
+  if (!res.ok) return null;
+  return toCreds(creds.clientId, await res.json(), Date.now());
+}
+async function registerClient(apiBase, redirectUri) {
+  const res = await fetch(`${apiBase}/register`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      client_name: "Sendle local shell",
+      redirect_uris: [redirectUri],
+      token_endpoint_auth_method: "none",
+      grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code"],
+      scope: SCOPE
+    })
+  });
+  if (!res.ok) throw new Error(`client registration failed: ${res.status} ${await res.text()}`);
+  return (await res.json()).client_id;
+}
+async function login(apiBase) {
+  let resolveCb;
+  let rejectCb;
+  const cbPromise = new Promise((resolve, reject) => {
+    resolveCb = resolve;
+    rejectCb = reject;
+  });
+  const server2 = createServer((req, res) => {
+    const u = new URL(req.url ?? "/", "http://127.0.0.1");
+    if (u.pathname !== "/callback") {
+      res.writeHead(404).end();
+      return;
+    }
+    const code = u.searchParams.get("code");
+    const state = u.searchParams.get("state");
+    res.writeHead(200, { "content-type": "text/html" }).end(
+      "<!doctype html><meta charset=utf-8><body style='font:16px system-ui;padding:40px'><h2>Sendle is authorized \u2014 you can close this tab.</h2></body>"
+    );
+    if (code && state) resolveCb?.({ code, state });
+    else rejectCb?.(new Error("authorization failed: no code returned"));
+  });
+  await new Promise((res) => server2.listen(0, "127.0.0.1", res));
+  const addr = server2.address();
+  const port = addr && typeof addr === "object" ? addr.port : 0;
+  if (!port) {
+    server2.close();
+    throw new Error("failed to bind a loopback port for OAuth");
+  }
+  const redirectUri = `http://127.0.0.1:${port}/callback`;
+  try {
+    const clientId = await registerClient(apiBase, redirectUri);
+    const { verifier, challenge } = pkcePair();
+    const state = b64url(randomBytes(16));
+    const authUrl = `${apiBase}/authorize?${new URLSearchParams({
+      response_type: "code",
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      scope: SCOPE,
+      state,
+      code_challenge: challenge,
+      code_challenge_method: "S256"
+    }).toString()}`;
+    process.stderr.write(`
+[sendle] Authorize Sendle in your browser:
+${authUrl}
+
+`);
+    openBrowser(authUrl);
+    const timer = setTimeout(() => rejectCb?.(new Error("login timed out")), LOGIN_TIMEOUT_MS);
+    let result;
+    try {
+      result = await cbPromise;
+    } finally {
+      clearTimeout(timer);
+    }
+    if (result.state !== state) throw new Error("OAuth state mismatch");
+    const res = await fetch(`${apiBase}/token`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        code: result.code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        code_verifier: verifier
+      })
+    });
+    if (!res.ok) throw new Error(`token exchange failed: ${res.status} ${await res.text()}`);
+    return toCreds(clientId, await res.json(), Date.now());
+  } finally {
+    server2.close();
+  }
+}
+async function getAccessToken(apiBase) {
+  const now = Date.now();
+  const existing = (await loadStore())[apiBase];
+  if (existing && accessTokenValid(existing, now)) return existing.accessToken;
+  if (existing?.refreshToken) {
+    const refreshed = await refresh(apiBase, existing);
+    if (refreshed) {
+      await saveCreds(apiBase, refreshed);
+      return refreshed.accessToken;
+    }
+  }
+  const fresh = await login(apiBase);
+  await saveCreds(apiBase, fresh);
+  return fresh.accessToken;
+}
+
 // apps/local-shell/src/send.ts
 import { readFile as fsReadFile } from "node:fs/promises";
 import { basename } from "node:path";
@@ -21130,10 +21299,9 @@ server.registerTool(
     inputSchema: { path: external_exports.string().min(1), title: external_exports.string().optional() }
   },
   async ({ path, title }) => {
-    const receipt = await sendFileToKindle(path, title, {
-      apiBase: process.env.SENDLE_API ?? "https://api.sendle.app",
-      token: process.env.SENDLE_TOKEN ?? ""
-    });
+    const apiBase = process.env.SENDLE_API ?? "https://api.sendle.app";
+    const token = await getAccessToken(apiBase);
+    const receipt = await sendFileToKindle(path, title, { apiBase, token });
     return { content: [{ type: "text", text: JSON.stringify(receipt) }] };
   }
 );

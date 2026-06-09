@@ -135,7 +135,7 @@
 </style>
 </head>
 <body>
-<button class="toggle" onclick="document.querySelector('nav.toc').classList.toggle('open')">☰ 目录</button>
+<button class="toggle" onclick="document.querySelector('nav.toc').classList.toggle('open')">☰ Contents</button>
 <div class="wrap">
 
 <!-- ============ LEFT TABLE OF CONTENTS ============
@@ -152,7 +152,7 @@
       </ul>
     </li>
     <!-- ... one <li> per section ... -->
-    <li><a href="#sources">来源 / Sources</a></li>
+    <li><a href="#sources">Sources</a></li>
   </ol>
 </nav>
 
@@ -160,13 +160,13 @@
 <!-- ============ HERO ============ -->
 <header class="hero">
   <div class="inner">
-    <span class="kicker">{{KICKER e.g. 深度研究报告}}</span>
+    <span class="kicker">{{KICKER e.g. In-depth research report}}</span>
     <h1>{{REPORT_TITLE}}</h1>
     <p class="lede">{{ONE_OR_TWO_SENTENCE_LEDE}}</p>
     <div class="meta-row">
-      <span><b>日期</b> {{DATE}}</span>
-      <span><b>方法</b> {{METHOD}}</span>
-      <span><b>主要来源</b> {{SOURCES_SUMMARY}}</span>
+      <span><b>Date</b> {{DATE}}</span>
+      <span><b>Method</b> {{METHOD}}</span>
+      <span><b>Key sources</b> {{SOURCES_SUMMARY}}</span>
     </div>
   </div>
 </header>
@@ -204,8 +204,8 @@
     <table>
       <thead><tr><th>{{col}}</th><th>{{col}}</th><th>{{col}}</th></tr></thead>
       <tbody>
-        <tr><td>{{a}}</td><td>{{b}}</td><td><span class="ok">是</span></td></tr>
-        <tr><td>{{a}}</td><td>{{b}}</td><td><span class="no">否</span></td></tr>
+        <tr><td>{{a}}</td><td>{{b}}</td><td><span class="ok">Yes</span></td></tr>
+        <tr><td>{{a}}</td><td>{{b}}</td><td><span class="no">No</span></td></tr>
       </tbody>
     </table>
     </div>
@@ -219,16 +219,16 @@
 
   <!-- ============ VERIFICATION & CAVEATS (include for research-based reports) ============ -->
   <section id="caveats">
-    <h2><span class="n">NN</span>核查与不确定性</h2>
-    <h4>核查后修正的要点</h4>
+    <h2><span class="n">NN</span>Verification &amp; caveats</h2>
+    <h4>Corrected claims</h4>
     <ul><li>{{corrected claim}}</li></ul>
-    <h4>仍存的不确定性</h4>
+    <h4>Open uncertainties</h4>
     <ul><li>{{open question / unverified figure}}</li></ul>
   </section>
 
   <!-- ============ SOURCES ============ -->
   <section id="sources">
-    <h2><span class="n">NN</span>来源 / Sources</h2>
+    <h2><span class="n">NN</span>Sources</h2>
     <ul class="src-list">
       <li><a href="{{url}}">{{source}}</a></li>
     </ul>

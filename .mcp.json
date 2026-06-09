@@ -2,16 +2,12 @@
   "mcpServers": {
     "sendle": {
       "type": "http",
-      "url": "https://api.sendle.app/mcp",
-      "headers": {
-        "Authorization": "Bearer ${user_config.token}"
-      }
+      "url": "https://api.sendle.app/mcp"
     },
     "sendle-local": {
       "command": "node",
       "args": ["${CLAUDE_PLUGIN_ROOT}/dist/local.mjs"],
       "env": {
-        "SENDLE_TOKEN": "${user_config.token}",
         "SENDLE_API": "https://api.sendle.app"
       }
     }
