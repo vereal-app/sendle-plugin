@@ -14,7 +14,7 @@ Archive long-form to your Kindle. In Claude Code, ask in plain words — Sendle 
 /reload-plugins
 ```
 
-When prompted, paste your **access token** — get one free at [sendle.app](https://sendle.app/?ref=github). That's the only thing to configure; the API endpoint is built in. The final `/reload-plugins` restarts the plugin's connectors so they pick up your token.
+The first time the plugin connects, a browser opens to authorize — sign in to [sendle.app](https://sendle.app/?ref=github) (free) and approve, once. **No token to paste**; the API endpoint is built in. (`/reload-plugins` above activates the connectors without a full restart.)
 
 ### One-time Kindle setup
 
@@ -38,7 +38,7 @@ The plugin ships a report skill: ask for a write-up (*"turn this into a report"*
 
 ## How it works
 
-- **Remote MCP** (`sendle`, HTTP + your token) → the hosted kernel: store, assemble a reproducible EPUB, deliver by email.
+- **Remote MCP** (`sendle`, HTTP + browser OAuth) → the hosted kernel: store, assemble a reproducible EPUB, deliver by email.
 - **Local shell** (`sendle-local`, stdio) → one tool, `send_file_to_kindle`: reads a local file and uploads it — the content never passes through the model.
 
 "Kindle" is just the common case: any reader that accepts email works, or your own inbox.
@@ -61,7 +61,4 @@ Full policy: [sendle.app/privacy](https://sendle.app/privacy)
 
 ## License
 
-[FSL-1.1-Apache-2.0](LICENSE) © VEREAL Labs — free to use, modify, and share for any
-non-competing purpose, personal use included. The one thing it rules out: offering this
-software (or a substitute built from it) as a commercial hosted service. Each release
-converts to Apache 2.0 two years after publication.
+[Apache-2.0](LICENSE) © VEREAL Labs — free to use, modify, and distribute.

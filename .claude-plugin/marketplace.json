@@ -3,12 +3,13 @@
   "owner": {
     "name": "VEREAL"
   },
+  "description": "Archive long-form reading and Claude Code threads to your Kindle as clean EPUBs, via the hosted Sendle service.",
   "plugins": [
     {
       "name": "sendle",
       "source": "./",
       "description": "Long-form archive to Kindle: collect snippets, assemble a reproducible EPUB, deliver via a hosted service.",
-      "version": "0.1.1"
+      "version": "0.1.3"
     }
   ]
 }
