@@ -24,7 +24,7 @@ Add Sendle's sender address to your Amazon **Approved Personal Document E-mail L
 
 | Command | What it does |
 |---|---|
-| `/sendle <text, or "the summary above">` | collect a snippet into the current book |
+| `/sendle:collect <text, or "the summary above">` | collect a snippet into the current book |
 | `/sendle:toc` | list the current book's items |
 | `/sendle:send` | assemble the book → EPUB → send to Kindle |
 | `/sendle:kindle <path>` | one-shot: send a local `.md` / `.html` file to Kindle |

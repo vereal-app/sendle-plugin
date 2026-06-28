@@ -1,15 +1,28 @@
 {
   "name": "sendle-marketplace",
   "owner": {
-    "name": "VEREAL"
+    "name": "VEREAL",
+    "email": "hello@sendle.app"
   },
-  "description": "Archive long-form reading and Claude Code threads to your Kindle as clean EPUBs, via the hosted Sendle service.",
+  "description": "Archive long-form reading and Claude Code threads to your Kindle — or any email e-reader — as clean EPUBs, via the hosted Sendle service.",
   "plugins": [
     {
       "name": "sendle",
       "source": "./",
-      "description": "Long-form archive to Kindle: collect snippets, assemble a reproducible EPUB, deliver via a hosted service.",
-      "version": "0.1.3"
+      "displayName": "Sendle",
+      "description": "Send long-form reading to your Kindle or any email e-reader — collect chat conclusions or whole files and get a clean, reproducible EPUB by email.",
+      "category": "productivity",
+      "keywords": [
+        "kindle",
+        "kobo",
+        "ereader",
+        "epub",
+        "archive",
+        "read-later"
+      ],
+      "homepage": "https://sendle.app",
+      "license": "Apache-2.0",
+      "version": "0.1.4"
     }
   ]
 }

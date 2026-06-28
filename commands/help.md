@@ -1,5 +1,5 @@
 ---
-description: "What Sendle can do, and how — archive long-form to your Kindle. Plain words work too, e.g. /sendle:help send the summary above"
+description: "What Sendle can do, and how — archive long-form to your Kindle or any e-reader that takes email. Plain words work too, e.g. /sendle:help send the summary above"
 argument-hint: "[or just say what you want]"
 ---
 
@@ -7,7 +7,7 @@ The user's intent: $ARGUMENTS
 
 **If that intent is empty or only whitespace** (the user typed `/sendle:help` with no arguments), output the help block below verbatim and STOP — do not delegate, do not call any tool:
 
-> **Sendle** — archive long-form to your Kindle, two ways:
+> **Sendle** — archive long-form to your Kindle (or any e-reader that takes email), two ways:
 >
 > **① Send a file** — `/sendle:kindle <a .md/.html path, or a file mentioned above>` (builds an EPUB and emails it; one-off, not saved)
 > **② Collect, then send a book** — `/sendle:collect <text, or just say what to grab — e.g. "the summary above">` stashes snippets (the first one opens a book) · `/sendle:toc` reviews them (drop any by its `#N`) · `/sendle:send` emails the assembled book
