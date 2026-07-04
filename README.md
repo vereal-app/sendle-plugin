@@ -18,6 +18,8 @@ The first time the plugin connects, a browser opens to authorize — sign in to 
 
 Requires **Node.js 22+ on your PATH** — the plugin's hooks and local file-sender run on `node` (Claude Code itself doesn't ship one).
 
+**On a remote server / no browser?** Still works. File sends switch to a device login: you get a short code and an `api.sendle.app/activate` link — open it on your phone or laptop, approve, done. For the remote connector use Claude Code's own `claude mcp login sendle --no-browser` (open the printed URL anywhere, paste the redirect URL back). Ask Claude to "reconnect Sendle" any time to check or repair the login.
+
 ### One-time Kindle setup
 
 Add Sendle's sender address to your Amazon **Approved Personal Document E-mail List** (Manage Content & Devices → Preferences → Personal Document Settings). Sign-up at [sendle.app](https://sendle.app/?ref=github) walks you through it and sends a test document.

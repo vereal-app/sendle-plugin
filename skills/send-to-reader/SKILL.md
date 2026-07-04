@@ -50,3 +50,9 @@ concrete value first — verbatim text for content, a real path for a file — a
 pass concrete values only, never references. If the target is empty or
 ambiguous, ask once. If no book is currently collecting, a collect opens one —
 never ask "which book".
+
+## If a tool reports authorization_required
+Relay the link and code to the user verbatim (they can open it on any device —
+phone or laptop), then retry the same call after they confirm they approved:
+the pending login is remembered and completes automatically. To check or repair
+authorization explicitly, call the sendle-local `authorize` tool.

@@ -21117,6 +21117,12 @@ function pkcePair() {
 function accessTokenValid(creds, now) {
   return !!creds?.accessToken && creds.expiresAt > now + EXPIRY_MARGIN_MS;
 }
+function headlessEnvironment(env = process.env, platform = process.platform) {
+  if (env.SENDLE_AUTH === "browser") return false;
+  if (env.SENDLE_AUTH === "device") return true;
+  if (platform === "darwin" || platform === "win32") return false;
+  return !env.DISPLAY && !env.WAYLAND_DISPLAY;
+}
 function toCreds(clientId, t, now) {
   return {
     clientId,
@@ -21132,9 +21138,9 @@ async function loadStore() {
     return {};
   }
 }
-async function saveCreds(apiBase, creds) {
+async function saveCreds(apiBase2, creds) {
   const store = await loadStore();
-  store[apiBase] = creds;
+  store[apiBase2] = creds;
   await mkdir(dirname(CRED_PATH), { recursive: true });
   await writeFile(CRED_PATH, JSON.stringify(store, null, 2), { mode: 384 });
 }
@@ -21145,9 +21151,9 @@ function openBrowser(url) {
   } catch {
   }
 }
-async function refresh(apiBase, creds) {
+async function refresh(apiBase2, creds) {
   if (!creds.refreshToken) return null;
-  const res = await fetch(`${apiBase}/token`, {
+  const res = await fetch(`${apiBase2}/token`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -21159,8 +21165,8 @@ async function refresh(apiBase, creds) {
   if (!res.ok) return null;
   return toCreds(creds.clientId, await res.json(), Date.now());
 }
-async function registerClient(apiBase, redirectUri) {
-  const res = await fetch(`${apiBase}/register`, {
+async function registerClient(apiBase2, redirectUri) {
+  const res = await fetch(`${apiBase2}/register`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -21175,7 +21181,7 @@ async function registerClient(apiBase, redirectUri) {
   if (!res.ok) throw new Error(`client registration failed: ${res.status} ${await res.text()}`);
   return (await res.json()).client_id;
 }
-async function login(apiBase) {
+async function login(apiBase2) {
   let resolveCb;
   let rejectCb;
   const cbPromise = new Promise((resolve, reject) => {
@@ -21205,10 +21211,10 @@ async function login(apiBase) {
   }
   const redirectUri = `http://127.0.0.1:${port}/callback`;
   try {
-    const clientId = await registerClient(apiBase, redirectUri);
+    const clientId = await registerClient(apiBase2, redirectUri);
     const { verifier, challenge } = pkcePair();
     const state = b64url(randomBytes(16));
-    const authUrl = `${apiBase}/authorize?${new URLSearchParams({
+    const authUrl = `${apiBase2}/authorize?${new URLSearchParams({
       response_type: "code",
       client_id: clientId,
       redirect_uri: redirectUri,
@@ -21231,36 +21237,134 @@ ${authUrl}
       clearTimeout(timer);
     }
     if (result.state !== state) throw new Error("OAuth state mismatch");
-    const res = await fetch(`${apiBase}/token`, {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        code: result.code,
-        redirect_uri: redirectUri,
-        client_id: clientId,
-        code_verifier: verifier
-      })
-    });
-    if (!res.ok) throw new Error(`token exchange failed: ${res.status} ${await res.text()}`);
-    return toCreds(clientId, await res.json(), Date.now());
+    return exchangeCode(apiBase2, clientId, result.code, redirectUri, verifier);
   } finally {
     server2.close();
   }
 }
-async function getAccessToken(apiBase) {
+async function exchangeCode(apiBase2, clientId, code, redirectUri, verifier) {
+  const res = await fetch(`${apiBase2}/token`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      code_verifier: verifier
+    })
+  });
+  if (!res.ok) throw new Error(`token exchange failed: ${res.status} ${await res.text()}`);
+  return toCreds(clientId, await res.json(), Date.now());
+}
+var DEVICE_PATH = join(homedir(), ".config", "sendle", "device.json");
+var DEVICE_POLL_TIMEOUT_MS = 9e4;
+var AuthorizationPendingError = class extends Error {
+  userCode;
+  verificationUriComplete;
+  constructor(state) {
+    super(
+      `authorization_required: ask the user to open ${state.verificationUriComplete} on any device (phone or laptop works), sign in, and approve \u2014 the page will show code ${state.userCode}. Then retry this tool: the pending login is remembered and completes automatically. Codes expire ~10 minutes after being issued.`
+    );
+    this.userCode = state.userCode;
+    this.verificationUriComplete = state.verificationUriComplete;
+  }
+};
+async function loadDeviceStore() {
+  try {
+    return JSON.parse(await readFile(DEVICE_PATH, "utf8"));
+  } catch {
+    return {};
+  }
+}
+async function saveDeviceState(apiBase2, state) {
+  const store = await loadDeviceStore();
+  if (state) store[apiBase2] = state;
+  else delete store[apiBase2];
+  await mkdir(dirname(DEVICE_PATH), { recursive: true });
+  await writeFile(DEVICE_PATH, JSON.stringify(store, null, 2), { mode: 384 });
+}
+async function startDeviceLogin(apiBase2) {
+  const redirectUri = `${apiBase2}/device/callback`;
+  const clientId = await registerClient(apiBase2, redirectUri);
+  const { verifier, challenge } = pkcePair();
+  const res = await fetch(`${apiBase2}/device/start`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ client_id: clientId, code_challenge: challenge })
+  });
+  if (!res.ok) throw new Error(`device login start failed: ${res.status} ${await res.text()}`);
+  const d = await res.json();
+  const state = {
+    clientId,
+    verifier,
+    deviceCode: d.device_code,
+    userCode: d.user_code,
+    verificationUriComplete: d.verification_uri_complete,
+    interval: d.interval ?? 5,
+    expiresAt: Date.now() + (d.expires_in ?? 600) * 1e3
+  };
+  await saveDeviceState(apiBase2, state);
+  return state;
+}
+async function pollDeviceOnce(apiBase2, state) {
+  const res = await fetch(`${apiBase2}/device/poll`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ device_code: state.deviceCode })
+  });
+  if (!res.ok) {
+    await saveDeviceState(apiBase2, null);
+    return { kind: "expired" };
+  }
+  const body = await res.json();
+  if (body.status !== "approved" || !body.code || !body.redirect_uri) return { kind: "pending" };
+  const creds = await exchangeCode(
+    apiBase2,
+    state.clientId,
+    body.code,
+    body.redirect_uri,
+    state.verifier
+  );
+  await saveCreds(apiBase2, creds);
+  await saveDeviceState(apiBase2, null);
+  return { kind: "authorized", token: creds.accessToken };
+}
+async function completeDeviceLogin(apiBase2, timeoutMs = DEVICE_POLL_TIMEOUT_MS) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const state = (await loadDeviceStore())[apiBase2];
+    if (!state || state.expiresAt <= Date.now()) return null;
+    const poll = await pollDeviceOnce(apiBase2, state);
+    if (poll.kind === "authorized") return poll.token;
+    if (poll.kind === "expired") return null;
+    await new Promise((r) => setTimeout(r, Math.max(1, state.interval) * 1e3));
+  }
+  return null;
+}
+async function deviceLogin(apiBase2) {
+  const existing = (await loadDeviceStore())[apiBase2];
+  if (existing && existing.expiresAt > Date.now()) {
+    const poll = await pollDeviceOnce(apiBase2, existing);
+    if (poll.kind === "authorized") return poll.token;
+    if (poll.kind === "pending") throw new AuthorizationPendingError(existing);
+  }
+  throw new AuthorizationPendingError(await startDeviceLogin(apiBase2));
+}
+async function getAccessToken(apiBase2) {
   const now = Date.now();
-  const existing = (await loadStore())[apiBase];
+  const existing = (await loadStore())[apiBase2];
   if (existing && accessTokenValid(existing, now)) return existing.accessToken;
   if (existing?.refreshToken) {
-    const refreshed = await refresh(apiBase, existing);
+    const refreshed = await refresh(apiBase2, existing);
     if (refreshed) {
-      await saveCreds(apiBase, refreshed);
+      await saveCreds(apiBase2, refreshed);
       return refreshed.accessToken;
     }
   }
-  const fresh = await login(apiBase);
-  await saveCreds(apiBase, fresh);
+  if (headlessEnvironment()) return deviceLogin(apiBase2);
+  const fresh = await login(apiBase2);
+  await saveCreds(apiBase2, fresh);
   return fresh.accessToken;
 }
 
@@ -21292,6 +21396,32 @@ async function sendFileToKindle(path, title, opts) {
 
 // apps/local-shell/src/index.ts
 var server = new McpServer({ name: "sendle-local", version: "0.1.0" });
+var apiBase = () => process.env.SENDLE_API ?? "https://api.sendle.app";
+async function ensureAuthorized() {
+  try {
+    return await getAccessToken(apiBase());
+  } catch (e) {
+    if (!(e instanceof AuthorizationPendingError)) throw e;
+    const approved = await elicitApproval(e).catch(() => false);
+    if (approved) {
+      const token = await completeDeviceLogin(apiBase());
+      if (token) return token;
+    }
+    throw e;
+  }
+}
+async function elicitApproval(pending) {
+  const res = await server.server.elicitInput({
+    message: `Authorize Sendle: open ${pending.verificationUriComplete} on any device (phone or laptop), sign in, and approve. The page will show code ${pending.userCode}. Confirm here once you've approved.`,
+    requestedSchema: {
+      type: "object",
+      properties: {
+        approved: { type: "boolean", title: "I approved it in the browser" }
+      }
+    }
+  });
+  return res.action === "accept";
+}
 server.registerTool(
   "send_file_to_kindle",
   {
@@ -21299,10 +21429,30 @@ server.registerTool(
     inputSchema: { path: external_exports.string().min(1), title: external_exports.string().optional() }
   },
   async ({ path, title }) => {
-    const apiBase = process.env.SENDLE_API ?? "https://api.sendle.app";
-    const token = await getAccessToken(apiBase);
-    const receipt = await sendFileToKindle(path, title, { apiBase, token });
+    const token = await ensureAuthorized();
+    const receipt = await sendFileToKindle(path, title, { apiBase: apiBase(), token });
     return { content: [{ type: "text", text: JSON.stringify(receipt) }] };
+  }
+);
+server.registerTool(
+  "authorize",
+  {
+    description: "Connect or repair Sendle's authorization on this machine. USE WHEN a Sendle call reported authorization_required, session context flagged an expired authorization, or the user asks to (re)connect Sendle. Browserless machines get a link + code to approve from any device.",
+    inputSchema: {}
+  },
+  async () => {
+    await ensureAuthorized();
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            status: "authorized",
+            message: "Sendle is connected on this machine."
+          })
+        }
+      ]
+    };
   }
 );
 await server.connect(new StdioServerTransport());

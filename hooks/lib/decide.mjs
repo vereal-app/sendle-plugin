@@ -29,6 +29,7 @@ const ALLOW = new Set([
   "send_book",
   "send_file_to_kindle",
   "collect",
+  "authorize",
 ]);
 
 // Matches the plugin-scoped ("sendle:archivist") and bare ("archivist", unpackaged dev) forms.
