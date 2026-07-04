@@ -1,6 +1,6 @@
 {
   "name": "sendle",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "Long-form archive to your Kindle — or any e-reader that takes email: conversationally save long-form conclusions, assemble a reproducible EPUB, and deliver it via the hosted Sendle service. Zero main-thread disruption; controllable and reproducible.",
   "author": {
     "name": "VEREAL",
