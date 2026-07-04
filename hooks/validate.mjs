@@ -13,7 +13,7 @@ try {
   payload = {};
 }
 
-const result = decide(payload.tool_name, payload.tool_input);
+const result = decide(payload.tool_name, payload.agent_type);
 if (result) {
   process.stdout.write(
     JSON.stringify({

@@ -1,6 +1,7 @@
 ---
 description: "What Sendle can do, and how — archive long-form to your Kindle or any e-reader that takes email. Plain words work too, e.g. /sendle:help send the summary above"
 argument-hint: "[or just say what you want]"
+disable-model-invocation: true
 ---
 
 The user's intent: $ARGUMENTS

@@ -58,9 +58,10 @@ has a `docs/README.md` index, add a one-line entry for the new report.
    format: browser chrome (sidebar TOC, scripts, styling) is stripped and the
    content is re-typeset for e-ink — Kindle or any reader that accepts email.
    A brief offer is enough ("Want it on your e-reader? I can send it via
-   Sendle."). If yes, run `/sendle:kindle <path>` on the saved file — one-off,
-   costs no tokens. To archive it as part of a larger book instead, collect
-   with `/sendle:collect` and `/sendle:send` when the book is done.
+   Sendle."). If yes, call the sendle-local `send_file_to_kindle` MCP tool with
+   the saved path (path only — never paste the file's contents) — one-off,
+   costs no tokens. To archive it into a book instead, follow the
+   send-to-reader skill: `collect` the content, then send via the archivist.
 
 ## Conventions (non-negotiable)
 - **Self-contained**: inline `<style>` + `<script>`, system-font stack, zero

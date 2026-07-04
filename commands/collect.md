@@ -1,6 +1,7 @@
 ---
 description: "Save a snippet into the current book — paste text or point at the chat. Example: /sendle:collect the summary above"
 argument-hint: "<text, or a pointer to the chat above> [into <section>]"
+disable-model-invocation: true
 ---
 
 Collecting is **one direct call** to the sendle `collect` MCP tool (`mcp__plugin_sendle_sendle__collect`) — a single zero-judgment composite; do NOT delegate to a subagent for this.

@@ -1,6 +1,7 @@
 ---
 description: "Build an EPUB from a local .md/.html file and send it to Kindle (one-off, not saved). Example: /sendle:kindle ~/notes.md"
 argument-hint: "<path to .md/.html, or a file from the chat>"
+disable-model-invocation: true
 ---
 
 A file send is **one direct call** to the sendle-local `send_file_to_kindle` MCP tool (`mcp__plugin_sendle_sendle-local__send_file_to_kindle`) — do NOT delegate to a subagent, and NEVER read or paste the file's contents: the tool reads the file locally and uploads it, so the content never passes through the model.

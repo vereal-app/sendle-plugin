@@ -1,6 +1,7 @@
 ---
 description: "Build the current book into an EPUB and email it to your Kindle (the book is then done). Example: /sendle:send"
 argument-hint: "[book, or 'go' to send as-is]"
+disable-model-invocation: true
 ---
 
 Delegate to the **archivist** subagent (Task tool, `subagent_type: sendle:archivist`) and return only its one-line summary — do not call any `mcp__sendle__*` tool from the main thread.
