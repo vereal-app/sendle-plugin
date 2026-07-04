@@ -3,14 +3,12 @@ description: "Build an EPUB from a local .md/.html file and send it to Kindle (o
 argument-hint: "<path to .md/.html, or a file from the chat>"
 ---
 
-Delegate to the **archivist** subagent (Task tool, `subagent_type: sendle:archivist`) and return only its one-line summary — do not call any `mcp__sendle__*` tool from the main thread.
+A file send is **one direct call** to the sendle-local `send_file_to_kindle` MCP tool (`mcp__plugin_sendle_sendle-local__send_file_to_kindle`) — do NOT delegate to a subagent, and NEVER read or paste the file's contents: the tool reads the file locally and uploads it, so the content never passes through the model.
 
-The argument below is normally a file path, but it may also **point at a file mentioned earlier in the chat** ("that doc above", "the html you just opened"). **You (the main thread)** resolve it to a concrete path from the conversation; if it's empty or ambiguous, list the file(s) you saw and ask which one. Hand the archivist **only the resolved path** — never read or paste the file's contents.
+The argument below is normally a file path, but it may also **point at a file mentioned earlier in the chat** ("that doc above", "the html you just opened"). Resolve it to a concrete path from the conversation; if it's empty or ambiguous, list the file(s) you saw and ask which one.
 
-Tell the archivist: send that local document straight to Kindle via `send_file_to_kindle` (pass only the path).
+Call `send_file_to_kindle` with only the resolved `path` (add `title` only if the user names one), then reply with one line from the receipt.
 
 Path / which file:
 
 $ARGUMENTS
-
-<!-- sendle-archive-request -->

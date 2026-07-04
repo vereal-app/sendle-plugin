@@ -8,5 +8,3 @@ Delegate to the **archivist** subagent (Task tool, `subagent_type: sendle:archiv
 Tell the archivist: **show the table of contents** of the active book via `render_toc` and paste the rendered `text`. If `$ARGUMENTS` names a book, use it; otherwise the active book.
 
 $ARGUMENTS
-
-<!-- sendle-archive-request -->

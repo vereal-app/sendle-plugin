@@ -14,7 +14,9 @@ Archive long-form to your Kindle. In Claude Code, ask in plain words — Sendle 
 /reload-plugins
 ```
 
-The first time the plugin connects, a browser opens to authorize — sign in to [sendle.app](https://sendle.app/?ref=github) (free) and approve, once. **No token to paste**; the API endpoint is built in. (`/reload-plugins` above activates the connectors without a full restart.)
+The first time the plugin connects, a browser opens to authorize — sign in to [sendle.app](https://sendle.app/?ref=github) (free) and approve, once. **No token to paste**; the API endpoint is built in. Your first *file* send authorizes the local file-sender the same way, one more time. (`/reload-plugins` above activates the connectors without a full restart.)
+
+Requires **Node.js 22+ on your PATH** — the plugin's hooks and local file-sender run on `node` (Claude Code itself doesn't ship one).
 
 ### One-time Kindle setup
 

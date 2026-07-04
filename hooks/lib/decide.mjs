@@ -1,10 +1,13 @@
 // PreToolUse decision policy for the Sendle MCP atoms — single source of truth.
 // Both validate.mjs (hook runtime) and test/hook-decide.test.ts import from here, preventing drift.
 //
-// All sendle atoms are auto-approved (allow) so collecting and sending run with zero interruption.
+// Known sendle atoms are auto-approved (allow) so collecting and sending run with zero interruption.
 // Sending to your own Kindle is low-risk and repeatable (a re-send just delivers it again), so there
-// is no "ask" confirmation gate. Unknown sendle atoms are denied (defense in depth — e.g. the
-// no-longer-exposed write_finished, or a typo); deep argument validation lives in the MCP server (zod).
+// is no "ask" confirmation gate; deep argument validation lives in the MCP server (zod).
+// Unknown sendle atoms get NEUTRAL (null → Claude Code's default permission flow, i.e. a prompt),
+// not a hard deny: the hosted server ships new tools faster than installed plugins update, and a
+// deny would dead-end every new remote tool until the plugin caught up. Neutral keeps the defense
+// (nothing unknown is silently auto-approved) without coupling server releases to plugin releases.
 import { sendleAtom } from "./tool-name.mjs";
 
 const ALLOW = new Set([
@@ -24,11 +27,12 @@ const ALLOW = new Set([
 /**
  * @param {string} toolName
  * @returns {{ permissionDecision: "allow" | "deny", reason?: string } | null}
- *   Returns null = not a sendle tool; this hook stays neutral (defers to the default permission flow).
+ *   Returns null = no stance (not a sendle tool, or an atom this plugin version doesn't know);
+ *   the hook stays neutral and Claude Code's default permission flow decides.
  */
 export function decide(toolName) {
   const atom = sendleAtom(toolName);
   if (atom === null) return null;
   if (ALLOW.has(atom)) return { permissionDecision: "allow" };
-  return { permissionDecision: "deny", reason: `Unknown sendle atom: ${atom}` };
+  return null;
 }
