@@ -11,30 +11,32 @@ Archive long-form to your Kindle. In Claude Code, ask in plain words — Sendle 
 ```
 /plugin marketplace add vereal-app/sendle-plugin
 /plugin install sendle
-/reload-plugins
 ```
 
-The first time the plugin connects, a browser opens to authorize — sign in to [sendle.app](https://sendle.app/?ref=github) (free) and approve, once. **No token to paste**; the API endpoint is built in. Your first *file* send authorizes the local file-sender the same way, one more time. (`/reload-plugins` above activates the connectors without a full restart.)
+If Claude Code says so, run `/reload-plugins` to activate it without a restart.
 
-Requires **Node.js 22+ on your PATH** — the plugin's hooks and local file-sender run on `node` (Claude Code itself doesn't ship one).
+That's it. **There's nothing to configure and no token to paste.** The first time you ask for something, a browser opens. Sign in to [sendle.app](https://sendle.app/?ref=github) (free) and approve once, and the request you made completes. **No e-reader set up yet?** Sends go to your login inbox until you add a Kindle or e-reader address at [sendle.app/app](https://sendle.app/app?ref=github).
 
-**On a remote server / no browser?** Still works. File sends switch to a device login: you get a short code and an `api.sendle.app/activate` link — open it on your phone or laptop, approve, done. For the remote connector use Claude Code's own `claude mcp login sendle --no-browser` (open the printed URL anywhere, paste the redirect URL back). Ask Claude to "reconnect Sendle" any time to check or repair the login.
+Requires **Node.js 22+ on your PATH**. The plugin's local server and hooks run on `node`, and Claude Code itself doesn't ship one.
 
-### One-time Kindle setup
+**Using Claude Cowork?** Cowork can't run local plugin servers. Add `https://api.sendle.app/mcp` as a custom connector instead. Collecting from chat and sending books work the same, but sending a local file needs Claude Code.
 
-Add Sendle's sender address to your Amazon **Approved Personal Document E-mail List** (Manage Content & Devices → Preferences → Personal Document Settings). Sign-up at [sendle.app](https://sendle.app/?ref=github) walks you through it and sends a test document.
+**On a remote server / no browser?** Still works. You get a short code and an `api.sendle.app/activate` link. Open it on your phone or laptop, approve, and confirm in the terminal. Ask Claude to "reconnect Sendle" any time to check or repair the login.
+
+### Delivering to a Kindle
+
+Add your Kindle address at [sendle.app/app](https://sendle.app/app?ref=github), then add Sendle's sender address to your Amazon **Approved Personal Document E-mail List** (Manage Content & Devices → Preferences → Personal Document Settings). The page shows the exact address and sends a test document. Using Gmail? You can deliver from your own address instead. If that is also your Amazon login email, Amazon usually needs nothing.
 
 ## Use
 
-| Command | What it does |
-|---|---|
-| `/sendle:collect <text, or "the summary above">` | collect a snippet into the current book |
-| `/sendle:toc` | list the current book's items |
-| `/sendle:send` | assemble the book → EPUB → send to Kindle |
-| `/sendle:kindle <path>` | one-shot: send a local `.md` / `.html` file to Kindle |
-| `/sendle:single-html <topic>` | write a polished single-file HTML report — then offer to Kindle it |
+Just say it in plain words, in any language:
 
-Or just ask in plain words — *"send this RFC to my Kindle with sendle"*.
+- *"send notes.md to my Kindle"* builds an EPUB from a local file and emails it. It's one-off and not saved.
+- *"add the summary above to sendle"* collects a passage into your book. The first collect opens a book.
+- *"what's in my book?"* and *"drop #2"* review and trim it.
+- *"send the book"* confirms the title, then emails the assembled book.
+
+Prefer commands? The same actions are `/sendle:kindle <file>`, `/sendle:collect <text>`, `/sendle:toc`, `/sendle:send` and `/sendle:help`.
 
 ### Bundled skill: single-html
 
@@ -42,8 +44,12 @@ The plugin ships a report skill: ask for a write-up (*"turn this into a report"*
 
 ## How it works
 
-- **Remote MCP** (`sendle`, HTTP + browser OAuth) → the hosted kernel: store, assemble a reproducible EPUB, deliver by email.
-- **Local shell** (`sendle-local`, stdio) → one tool, `send_file_to_kindle`: reads a local file and uploads it — the content never passes through the model.
+One local MCP server, `sendle`, does two jobs:
+
+- **Sends local files.** `send_file_to_kindle` reads the file on your machine and uploads it. The content never passes through the model.
+- **Forwards book operations.** Collect, contents, rename and send go to the hosted Sendle service, which stores your book, assembles a reproducible EPUB and delivers it by email. It uses the same one-time login.
+
+Book review and sending run in an isolated `archivist` subagent, so your main conversation only sees a one-line result.
 
 "Kindle" is just the common case: any reader that accepts email works, or your own inbox.
 

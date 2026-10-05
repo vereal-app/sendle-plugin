@@ -2,8 +2,9 @@
 //   standalone server      -> "mcp__sendle__<atom>"
 //   installed as a plugin   -> "mcp__plugin_sendle_sendle__<atom>"
 //     (Claude Code namespaces a plugin's MCP server as `mcp__plugin_<plugin>_<server>__`).
-// Also matches the local shell server "sendle-local" (mcp__plugin_sendle_sendle-local__<atom>),
-// which carries send_file_to_kindle. Single source of truth so hook matching never drifts.
+// Since v0.2 the plugin ships ONE local server named "sendle" (it carries send_file_to_kindle and
+// forwards the hosted atoms); the "-local" form is still matched for installs older than v0.2.
+// Single source of truth so hook matching never drifts.
 const ATOM = /^mcp__(?:plugin_sendle_)?sendle(?:-local)?__(.+)$/;
 
 /**

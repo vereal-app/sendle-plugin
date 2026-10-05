@@ -13,7 +13,7 @@
 // carries agent_type ONLY when the call comes from a subagent (plugin agents report
 // "<plugin>:<name>", e.g. "sendle:archivist"; absent = the main thread, per the hooks docs) —
 // so "not the archivist" is a positive identification, and the deny reason redirects the model
-// to delegate. Everything else stays caller-agnostic: collect / send_file_to_kindle are the
+// to invoke the sendle:send skill (which forks into the archivist). Everything else stays caller-agnostic: collect / send_file_to_kindle are the
 // sanctioned main-thread one-shots, and the read/manage atoms are harmless anywhere.
 import { sendleAtom } from "./tool-name.mjs";
 
@@ -49,7 +49,7 @@ export function decide(toolName, agentType) {
     return {
       permissionDecision: "deny",
       reason:
-        "send_book runs only inside the sendle:archivist subagent. Delegate with the Task tool (subagent_type: sendle:archivist), as /sendle:send does — the archivist confirms the title, then sends.",
+        'send_book runs only inside the sendle:archivist subagent. Invoke the sendle:send skill instead (it runs there): with no argument it reports the title to confirm, then "go" or "rename: <title>" sends.',
     };
   }
   if (ALLOW.has(atom)) return { permissionDecision: "allow" };

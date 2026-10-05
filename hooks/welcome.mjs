@@ -57,7 +57,7 @@ function reauthNote() {
   markState("reauth-nudged", new Date().toISOString());
   return [
     "Sendle note: this machine's Sendle authorization has expired and cannot refresh silently, so the next send would stop for a login.",
-    "If (and only if) the user touches on sending things to their reader — or asks about Sendle — offer to reconnect first: call the sendle-local `authorize` tool.",
+    "If (and only if) the user touches on sending things to their reader — or asks about Sendle — offer to reconnect first: call the sendle `authorize` tool.",
     "On a browserless machine it returns a link + code they can approve from any device. Do not interrupt unrelated work with this.",
   ].join(" ");
 }

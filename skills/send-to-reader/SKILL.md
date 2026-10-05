@@ -1,58 +1,52 @@
 ---
 name: send-to-reader
 description: >-
-  Use when the user wants to put reading onto their e-reader, or get something
-  out of the chat onto their e-reader to read later — send, archive, or save it
-  to their Kindle, Kobo, Boox, reMarkable, or any email-capable reader or inbox,
-  as a clean EPUB. Covers a chat conclusion, a pasted passage, or a whole
-  file/document (writing the report itself is single-html's job; this skill only
-  delivers it). Triggers on phrasings like "send this to my Kindle", "send it to
-  my reader / e-reader", "kindle this", "email me this as an EPUB", "send this
-  to my e-reader to read later", "archive this to my reader with sendle", "add
-  the summary above to sendle". One-shot collects and file sends are single
-  direct tool calls; book review and sending run in the sendle:archivist
-  subagent.
+  Use when the user wants something on their Kindle or e-reader (Kobo, Boox,
+  reMarkable, any reader or inbox that takes email) to read later, or wants to
+  manage the Sendle book they are collecting. Covers sending a whole .md/.html
+  file, collecting a chat conclusion or pasted passage, reviewing / trimming /
+  renaming / sending the book, and (re)connecting Sendle. Triggers on phrasings
+  like "send this to my Kindle", "kindle this file", "put notes.md on my
+  reader", "add the summary above to sendle", "save that for later reading",
+  "what's in my book", "drop #2", "send the book", "reconnect sendle" — and the
+  same in any language, e.g. 「把这个文件发到 Kindle」「把上面的总结存进
+  sendle」「收藏这段，回头在阅读器上看」「我的书里有什么」「删掉第 2
+  条」「把书发出去」「重新连接 sendle」. Writing a report itself is
+  single-html's job; this skill only delivers it.
+user-invocable: false
 ---
 
 # send-to-reader
 
-The user wants something on their e-reader. Translate the plain-language intent
-into one Sendle action. **One-shot actions (collect a passage, send a file) are
-a single direct MCP tool call.** Book review, management, and sending run in the
-**`sendle:archivist`** subagent (Task tool, `subagent_type: sendle:archivist`) —
-return only its one-line summary and keep archiving noise out of the main
-thread.
-
-Kindle is the common case, not the only one: any reader that accepts email works
-(Kobo, Boox, reMarkable, or a plain inbox) — don't insist on the word "Kindle".
+Translate the user's plain-language intent into ONE Sendle action. Kindle is the
+common case, not the only one — any reader that accepts email works; don't insist
+on the word "Kindle".
 
 ## Route the intent
-- **A whole file / document** ("send this file", "kindle that doc", a path to a
-  `.md` / `.html`) → resolve it to a concrete path and call
-  `send_file_to_kindle(path)` directly. Pass the **path only** — never read or
-  paste the file's contents (the tool reads it locally; the content never
-  passes through the model). One-off; not saved to the library.
-- **A passage or chat conclusion** ("add the summary above", "save this",
-  "collect that") → resolve it to **verbatim text** (never summarize) plus its
-  `source` (`user` if the reader wrote/pasted it, `ai` if the assistant
-  generated it) and call `collect` directly — it appends to the book currently
-  collecting or opens a new one.
-- **Review / manage** ("what's in my book", "drop #2", "list my books") → hand
-  straight to the archivist.
-- **Send the book** ("send it", "ship the book") → two rounds via the
-  archivist: first delegation reports the book's title (a subagent can't ask
-  the user anything), the user confirms or renames, second delegation sends.
+| The user wants to… | Do exactly this |
+|---|---|
+| send a whole file / document ("send this file", a `.md` / `.html` path) | Resolve it to a concrete path, then call `send_file_to_kindle(path)` directly. Pass the **path only** — never read or paste the file (the tool reads it locally; content never passes through the model). One-off; not saved. |
+| collect a passage or chat conclusion ("add the summary above", "save this") | Resolve it to the **verbatim text** (never summarize) and its `source` (`user` if the user wrote/pasted it, `ai` if the assistant generated it), then call `collect` directly. It appends to the book being collected, or opens a new one. |
+| review or manage the book ("what's in my book", "drop #2", "rename it to X", "list my books") | Invoke the **`sendle:toc`** skill with the request as its argument — e.g. `drop #2`, `rename: X`, `list books`, or nothing to show the contents. |
+| send the book ("send it", "ship the book") | Invoke the **`sendle:send`** skill with no argument. It replies with the title and item count; ask the user (AskUserQuestion when available: *Send as-is* / *Rename* / *Cancel*), then invoke `sendle:send` again with `go` or `rename: <new title>`. If the user already gave the final title, go straight to `rename: <title>`. |
+| (re)connect Sendle | Call the `authorize` tool. |
+
+`sendle:toc` and `sendle:send` run in the isolated archivist and **cannot see this
+conversation** — pass concrete values only (`#N`, an exact title), never "the one
+above". Relay their one-line result; keep archiving details out of the main thread.
 
 ## Resolve before acting
-The user usually **points at** content ("the conclusion above", "that report")
-instead of spelling it out. You (the main thread) resolve the pointer to a
-concrete value first — verbatim text for content, a real path for a file — and
-pass concrete values only, never references. If the target is empty or
-ambiguous, ask once. If no book is currently collecting, a collect opens one —
-never ask "which book".
+The user usually **points at** content ("the conclusion above", "that report").
+Resolve the pointer yourself first — verbatim text for content, a real path for a
+file. If the target is empty or ambiguous, ask once. Never ask "which book": a
+collect goes to the book being collected, or opens one.
 
-## If a tool reports authorization_required
-Relay the link and code to the user verbatim (they can open it on any device —
-phone or laptop), then retry the same call after they confirm they approved:
-the pending login is remembered and completes automatically. To check or repair
-authorization explicitly, call the sendle-local `authorize` tool.
+## Results worth relaying
+- A receipt `note` (e.g. "delivered to your inbox because no e-reader is set yet")
+  — pass it on verbatim.
+- `authorization_required` — relay the link and code verbatim (any device works),
+  then retry the same call once the user has approved; the pending login resumes.
+- Any other error — relay its message as-is; don't retry on your own.
+- **No sendle tools at all** (the plugin's server didn't start) — almost always Node.js is
+  missing: tell the user Sendle needs Node.js 22+ on their PATH (https://nodejs.org), then
+  `/reload-plugins`. Don't try to work around it.
