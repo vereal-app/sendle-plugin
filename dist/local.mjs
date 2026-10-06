@@ -23837,6 +23837,9 @@ var StreamableHTTPClientTransport = class {
   }
 };
 
+// apps/local-shell/src/version.ts
+var PLUGIN_VERSION = true ? "0.5.2" : "0.0.0-dev";
+
 // apps/local-shell/src/proxy.ts
 var SEND_TIMEOUT_MS = 12e4;
 function isUnauthorized(e) {
@@ -23858,7 +23861,7 @@ var RemoteAtoms = class {
     const transport = this.deps.makeTransport?.(url2, token) ?? new StreamableHTTPClientTransport(url2, {
       requestInit: { headers: { Authorization: `Bearer ${token}` } }
     });
-    const client = new Client({ name: "sendle-plugin", version: "0.5.0" });
+    const client = new Client({ name: "sendle-plugin", version: PLUGIN_VERSION });
     await client.connect(transport);
     this.client = client;
     this.token = token;
@@ -23942,7 +23945,7 @@ async function sendFileToKindle(path, title, opts) {
 }
 
 // apps/local-shell/src/index.ts
-var server = new McpServer({ name: "sendle", version: "0.5.0" });
+var server = new McpServer({ name: "sendle", version: PLUGIN_VERSION });
 var apiBase = () => process.env.SENDLE_API ?? "https://api.sendle.app";
 async function ensureAuthorized() {
   try {
