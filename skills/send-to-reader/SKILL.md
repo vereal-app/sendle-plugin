@@ -47,6 +47,13 @@ collect goes to the book being collected, or opens one.
 - `authorization_required` — relay the link and code verbatim (any device works),
   then retry the same call once the user has approved; the pending login resumes.
 - Any other error — relay its message as-is; don't retry on your own.
-- **No sendle tools at all** (the plugin's server didn't start) — almost always Node.js is
-  missing: tell the user Sendle needs Node.js 22+ on their PATH (https://nodejs.org), then
-  `/reload-plugins`. Don't try to work around it.
+- **No sendle tools at all** — the plugin's local server isn't running. Which fix applies depends
+  on where you are:
+  - **Claude Code** (you have a terminal): the server didn't start, almost always because
+    Node.js is missing. Tell the user Sendle needs Node.js 22+ on their PATH
+    (https://nodejs.org), then `/reload-plugins`.
+  - **claude.ai or Cowork** (no terminal): this plugin's local server doesn't run there. Tell
+    the user to connect the **Sendle connector** instead (from the directory, or as a custom
+    connector at `https://api.sendle.app/mcp`); collecting and sending books then work, while
+    sending a local file needs Claude Code.
+  Don't try to work around it.

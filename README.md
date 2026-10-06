@@ -53,6 +53,25 @@ Book review and sending run in an isolated `archivist` subagent, so your main co
 
 "Kindle" is just the common case: any reader that accepts email works, or your own inbox.
 
+## Permissions and data
+
+Everything this plugin runs, reads, writes and sends:
+
+**Hooks** run on your machine and never touch the network.
+
+- `PreToolUse` runs only on calls to Sendle's own MCP tools. It **auto-approves Sendle's known tools**, so collecting and sending don't stop for a permission prompt each time. It never approves any other tool. It **blocks `send_book` outside the `sendle:archivist` subagent**, so a book is only sent after the title is confirmed. Any Sendle tool it doesn't recognize falls back to Claude Code's normal permission prompt.
+- `SessionStart` runs once per new session. It writes a first-run `welcomed` flag, and a timestamp that limits a re-login reminder to once a day, in the plugin's data directory. It reads `~/.config/sendle/credentials.json` only to check whether your login has expired. It then adds a one-line note to Claude's context.
+
+**The MCP server** is a single local process, `node dist/local.mjs`. It only talks to `https://api.sendle.app`.
+
+- `send_file_to_kindle` reads **only the file whose path you ask it to send**. It uploads that file's text to `/v1/ephemeral-send`, where Sendle builds the EPUB, emails it to your reader and discards it. The text never enters the model context.
+- The book tools (`collect`, `render_toc`, `send_book` and the rest) forward their arguments to `/mcp`. A passage you collect is sent to Sendle and stored in your book until you delete it.
+- **Login** happens once. It opens your browser at `api.sendle.app/authorize`, using a one-time listener on `127.0.0.1` to receive the redirect. On a headless machine you get a code to approve at `api.sendle.app/activate` instead. Your credentials are stored in `~/.config/sendle/credentials.json` (file mode 600), and a login in progress is kept in `~/.config/sendle/device.json`. Access tokens refresh silently. Asking Claude to "switch my Sendle account" deletes both files and signs in again.
+- The plugin itself sends **no telemetry or analytics**.
+- `dist/local.mjs` is an unminified esbuild bundle. It contains Sendle's local server plus the open-source MCP TypeScript SDK and zod.
+
+**Skills and the agent** are plain instructions. The `archivist` subagent can only call Sendle's book tools. It has no shell or file access.
+
 ## Privacy
 
 - **Zero tokens, zero model exposure** — local files are read on your machine and uploaded straight to Sendle; their contents never enter the model context.

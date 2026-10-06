@@ -21282,25 +21282,31 @@ var TOOL_DEFS = {
     name: "list_books",
     description: "List all books (descending by creation date)",
     input: external_exports.object({}),
-    annotations: { readOnlyHint: true },
+    annotations: { title: "List books", readOnlyHint: true },
     hints: { searchHint: "list sendle books history sent collecting" }
   }),
   create_book: def({
     name: "create_book",
-    description: "Create a new (empty) book for the multi-step buffer flow and set it as active; returns book_id. NOT needed for a one-shot file send; use send_file_to_kindle for that",
-    input: external_exports.object({ title: external_exports.string().min(1), topic: external_exports.array(external_exports.string()).optional() })
+    description: "Create a new (empty) book for the multi-step buffer flow and set it as active; returns book_id. NOT needed for a one-shot file send (the Sendle Claude Code plugin's send_file_to_kindle tool, where available)",
+    input: external_exports.object({ title: external_exports.string().min(1), topic: external_exports.array(external_exports.string()).optional() }),
+    annotations: { title: "Create a book", readOnlyHint: false, destructiveHint: false }
   }),
   rename_book: def({
     name: "rename_book",
     description: "Rename a book \u2014 change its title only (nothing else is touched)",
     input: external_exports.object({ book_id: external_exports.string().min(1), title: external_exports.string().min(1) }),
-    annotations: { idempotentHint: true }
+    annotations: {
+      title: "Rename a book",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true
+    }
   }),
   read_raw: def({
     name: "read_raw",
     description: "Read a book's active fragments (ascending by order); the sole input for all downstream pure functions",
     input: external_exports.object({ book_id: external_exports.string().min(1), include_discarded: external_exports.boolean().optional() }),
-    annotations: { readOnlyHint: true }
+    annotations: { title: "Read a book's passages", readOnlyHint: true }
   }),
   append_raw: def({
     name: "append_raw",
@@ -21310,45 +21316,64 @@ var TOOL_DEFS = {
       text: external_exports.string().min(1),
       source: sourceSchema,
       path: external_exports.string().optional()
-    })
+    }),
+    annotations: { title: "Add a passage to a book", readOnlyHint: false, destructiveHint: false }
   }),
   discard_raw: def({
     name: "discard_raw",
     description: "Soft-delete a fragment (recoverable)",
     input: external_exports.object({ fragment_id: external_exports.string().min(1) }),
-    annotations: { idempotentHint: true }
+    annotations: {
+      title: "Remove a passage from a book",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true
+    }
   }),
   set_status: def({
     name: "set_status",
     description: 'Set the status; when moving to "generated"/"sent", stamp the date and recompute the fragment count (both done by the atom)',
-    input: external_exports.object({ book_id: external_exports.string().min(1), status: statusSchema })
+    input: external_exports.object({ book_id: external_exports.string().min(1), status: statusSchema }),
+    annotations: {
+      title: "Set a book's status",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true
+    }
   }),
   render_toc: def({
     name: "render_toc",
     description: "Render a book's minimal hierarchical table of contents (number + title, no summaries) + a number<->fragment_id mapping",
     input: external_exports.object({ book_id: external_exports.string().min(1) }),
-    annotations: { readOnlyHint: true },
+    annotations: { title: "Show a book's contents", readOnlyHint: true },
     hints: { searchHint: "sendle book table of contents items" }
   }),
   send_book: def({
     name: "send_book",
-    description: "Assemble a collected book (by book_id) into an EPUB and send it to the user's reader, then mark it sent. Idempotent. Pass `title` to rename the book in the same call (the user's confirmed title). Final step of the multi-step buffer flow; needs an existing book_id. NOT for a one-shot file send (use send_file_to_kindle)",
+    description: "Assemble a collected book (by book_id) into an EPUB and send it to the user's reader, then mark it sent. Idempotent. Pass `title` to rename the book in the same call (the user's confirmed title). Final step of the multi-step buffer flow; needs an existing book_id. NOT for a one-shot file send (the Sendle Claude Code plugin's send_file_to_kindle tool, where available)",
     input: external_exports.object({
       book_id: external_exports.string().min(1),
       title: external_exports.string().min(1).optional(),
       force: external_exports.boolean().optional()
     }),
-    annotations: { idempotentHint: true, openWorldHint: true }
+    annotations: {
+      title: "Send a book to the reader",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true
+    }
   }),
   collect: def({
     name: "collect",
-    description: "Collect a verbatim passage from the conversation into the user's current Sendle book (a buffer that later becomes one EPUB for their Kindle or e-reader). USE WHEN the user wants to stash / save / add some text to read later. Pass the exact `content` (never summarize). Default: append to the book currently being collected; if there is none, start a new one named from the content. Pass `book_title` to start or target a specific book. `section` is an optional chapter path. For an existing FILE use send_file_to_kindle instead",
+    description: "Collect a verbatim passage from the conversation into the user's current Sendle book (a buffer that later becomes one EPUB for their Kindle or e-reader). USE WHEN the user wants to stash / save / add some text to read later. Pass the exact `content` (never summarize). Default: append to the book currently being collected; if there is none, start a new one named from the content. Pass `book_title` to start or target a specific book. `section` is an optional chapter path. For an existing local FILE, use the send_file_to_kindle tool instead when it is available (Sendle Claude Code plugin)",
     input: external_exports.object({
       content: external_exports.string().min(1),
       book_title: external_exports.string().optional(),
       section: external_exports.string().optional(),
       source: sourceSchema.optional()
     }),
+    annotations: { title: "Collect a passage", readOnlyHint: false, destructiveHint: false },
     hints: { alwaysLoad: true, searchHint: "save collect passage kindle e-reader read later" }
   })
 };
@@ -23833,7 +23858,7 @@ var RemoteAtoms = class {
     const transport = this.deps.makeTransport?.(url2, token) ?? new StreamableHTTPClientTransport(url2, {
       requestInit: { headers: { Authorization: `Bearer ${token}` } }
     });
-    const client = new Client({ name: "sendle-plugin", version: "0.2.0" });
+    const client = new Client({ name: "sendle-plugin", version: "0.5.0" });
     await client.connect(transport);
     this.client = client;
     this.token = token;
@@ -23917,7 +23942,7 @@ async function sendFileToKindle(path, title, opts) {
 }
 
 // apps/local-shell/src/index.ts
-var server = new McpServer({ name: "sendle", version: "0.2.0" });
+var server = new McpServer({ name: "sendle", version: "0.5.0" });
 var apiBase = () => process.env.SENDLE_API ?? "https://api.sendle.app";
 async function ensureAuthorized() {
   try {
@@ -23968,7 +23993,12 @@ server.registerTool(
   {
     description: "Send a local document file to the user's Kindle (or any e-reader that takes email) as an EPUB. USE WHEN the user wants to read an existing .md/.markdown/.html file on their reader (e.g. 'send this file to my Kindle', 'put notes.md on my Kindle', '\u628A\u8FD9\u4E2A\u6587\u4EF6\u53D1\u5230 Kindle'). `path` is a local file path (absolute is safest); the title comes from the document or the optional `title`. One-shot and ephemeral, NOT saved. The file is read locally and uploaded \u2014 its content never passes through the model, so never read the file yourself first.",
     inputSchema: { path: external_exports.string().min(1), title: external_exports.string().optional() },
-    annotations: { openWorldHint: true },
+    annotations: {
+      title: "Send a file to the reader",
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: true
+    },
     _meta: toolMeta({ alwaysLoad: true, searchHint: "send file document kindle e-reader epub" })
   },
   async ({ path, title }) => {
@@ -23991,7 +24021,13 @@ server.registerTool(
   "authorize",
   {
     description: "Connect or repair Sendle's authorization on this machine. USE WHEN a Sendle call reported authorization_required or unauthorized, session context flagged an expired authorization, or the user asks to (re)connect Sendle. Pass `switch_account: true` when the user wants to use a different Sendle account: it signs this machine out first, and the browser page offers 'Not you? Use another account'. Browserless machines get a link + code to approve from any device.",
-    inputSchema: { switch_account: external_exports.boolean().optional() }
+    inputSchema: { switch_account: external_exports.boolean().optional() },
+    annotations: {
+      title: "Connect Sendle",
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true
+    }
   },
   async ({ switch_account }) => {
     await remote.close();
