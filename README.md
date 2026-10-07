@@ -75,7 +75,7 @@ Everything this plugin runs, reads, writes and sends:
 ## Privacy
 
 - **Zero tokens, zero model exposure** — local files are read on your machine and uploaded straight to Sendle; their contents never enter the model context.
-- **One-shot sends aren't stored** — files and pastes are built into an EPUB, delivered, and discarded. Only a delivery record (title, kind, timestamp) is kept for your send history and plan limits.
+- **One-shot sends aren't stored** — files are built into an EPUB, delivered, and discarded. Only a delivery record (title, kind, timestamp) is kept for your send history and plan limits.
 - **Your books, your call** — collected books are kept so you can manage and re-send them, and hard-deleted the moment you delete them.
 
 Full policy: [sendle.app/privacy](https://sendle.app/privacy)

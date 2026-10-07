@@ -23838,7 +23838,7 @@ var StreamableHTTPClientTransport = class {
 };
 
 // apps/local-shell/src/version.ts
-var PLUGIN_VERSION = true ? "0.5.2" : "0.0.0-dev";
+var PLUGIN_VERSION = true ? "0.5.3" : "0.0.0-dev";
 
 // apps/local-shell/src/proxy.ts
 var SEND_TIMEOUT_MS = 12e4;

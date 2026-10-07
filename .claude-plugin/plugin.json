@@ -1,7 +1,7 @@
 {
   "name": "sendle",
   "displayName": "Sendle",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Send long-form reading to your Kindle or any e-reader that takes email, just by asking in plain words. Collect chat conclusions or send whole files and get a clean, reproducible EPUB by email. One login, nothing to configure; local file contents never pass through the model.",
   "author": {
     "name": "VEREAL",
